@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="jakarta.faces.html"
+      xmlns:f="jakarta.faces.core"
+      xmlns:p="http://primefaces.org/ui">
+
+<h:head>
+    <title>Bid Management</title>
+</h:head>
+
+<h:body style="max-width:900px;margin:40px auto;font-family:Arial">
+    <h1>Bid Management</h1>
+
+    <h:form id="bidForm">
+        <p:messages id="messages"/>
+
+        <p:panel header="Create a bid">
+            <h:panelGrid columns="2" cellpadding="10">
+                <p:outputLabel for="name" value="Bidder name"/>
+                <p:inputText id="name"
+                             value="#{bidView.bidderName}"
+                             required="true"
+                             requiredMessage="Enter your name."
+                             maxlength="255"/>
+
+                <p:outputLabel for="amount" value="Amount"/>
+                <p:inputNumber id="amount"
+                               value="#{bidView.amount}"
+                               required="true"
+                               decimalPlaces="2"
+                               minValue="0.01"/>
+            </h:panelGrid>
+
+            <p:commandButton value="Save bid"
+                             action="#{bidView.save}"
+                             process="@form"
+                             update="@form"/>
+        </p:panel>
+
+        <p:dataTable id="table"
+                     value="#{bidView.bids}"
+                     var="bid"
+                     emptyMessage="No bids yet"
+                     style="margin-top:24px">
+            <p:column headerText="ID">
+                <h:outputText value="#{bid.id}"/>
+            </p:column>
+            <p:column headerText="Bidder">
+                <h:outputText value="#{bid.bidderName}"/>
+            </p:column>
+            <p:column headerText="Amount">
+                <h:outputText value="#{bid.amount}"/>
+            </p:column>
+        </p:dataTable>
+
+        <p:remoteCommand name="refreshBids"
+                         process="@this"
+                         update="table"/>
+    </h:form>
+
+    <h:outputScript>
+        function onBidMessage(message) {
+            if (message === "BID_CREATED") {
+                refreshBids();
+            }
+        }
+    </h:outputScript>
+
+    <f:websocket channel="bids"
+                 scope="application"
+                 onmessage="onBidMessage"/>
+</h:body>
+</html>
